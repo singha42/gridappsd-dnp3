@@ -50,7 +50,9 @@ class dnp3_mapping():
 		elif m['MeasurementClass'] == "Discrete":
 		    self.assign_val("BO",10,2,self.c_bo,name,description,measurement_type,measurement_id)
           	    self.c_bo += 1
-               
+                for m in capacitors:
+			
+			
             return self.out_json
 
 test1 = dnp3_mapping('model_dict.json')
