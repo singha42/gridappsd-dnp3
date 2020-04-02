@@ -71,6 +71,7 @@ class DNP3Outstation(opendnp3.IOutstationApplication):
     outstation = None
 
     outstation_config = {}
+    print(outstation_config)
     agent = None
 
     def __init__(self, local_ip, port, outstation_config):
@@ -91,6 +92,7 @@ class DNP3Outstation(opendnp3.IOutstationApplication):
         """
         super(DNP3Outstation, self).__init__()
         self.local_ip = local_ip
+        self.port = port
         #print(local_ip),
         self.set_outstation_config(outstation_config)
         # The following variables are initialized after start() is called.
@@ -103,27 +105,25 @@ class DNP3Outstation(opendnp3.IOutstationApplication):
         self.command_handler = None
         #self.port_config = port_file
 
-        with open("/tmp/port.json", 'r') as f:
-            self.port_config = json.load(f)
-
-        self.port = port
+        #with open("/tmp/port.json", 'r') as f:
+        #    self.port_config = json.load(f)
+        #    for m in self.port_config: 
+        #        self.port = m['port']
     
     def start(self):
         _log.debug('Configuring the DNP3 stack.')
 
-        for m in self.port_config:
-            self.stack_config = asiodnp3.OutstationStackConfig(
-            opendnp3.DatabaseSizes.AllTypes(self.outstation_config.get('database_sizes', 10000)))
-            _log.debug(self.stack_config)
-            self.stack_config.outstation.eventBufferConfig = opendnp3.EventBufferConfig.AllTypes(
-            self.outstation_config.get('event_buffers', 10))
-            self.stack_config.outstation.params.allowUnsolicited = self.outstation_config.get('allow_unsolicited', False)
+        #for m in self.port_config:
+        self.stack_config = asiodnp3.OutstationStackConfig(opendnp3.DatabaseSizes.AllTypes(self.outstation_config.get('database_sizes', 10000)))
+        _log.debug(self.stack_config)
+        self.stack_config.outstation.eventBufferConfig = opendnp3.EventBufferConfig.AllTypes(self.outstation_config.get('event_buffers', 10))
+        self.stack_config.outstation.params.allowUnsolicited = self.outstation_config.get('allow_unsolicited', False)
             #for x in self.port_config:
-            link_addr = m['link_local_addr']
-            remote_addr = m['link_remote_addr']
-            self.stack_config.link.LocalAddr = self.outstation_config.get('link_local_addr', link_addr)
-            self.stack_config.link.RemoteAddr = self.outstation_config.get('link_remote_addr', remote_addr)
-            self.stack_config.link.KeepAliveTimeout = openpal.TimeDuration().Max()
+           # link_addr = m['link_local_addr']
+           # remote_addr = m['link_remote_addr']
+        self.stack_config.link.LocalAddr = self.outstation_config.get('link_local_addr', 1)
+        self.stack_config.link.RemoteAddr = self.outstation_config.get('link_remote_addr',1024)
+        self.stack_config.link.KeepAliveTimeout = openpal.TimeDuration().Max()
 
         # Configure the outstation database of points based on the contents of the data dictionary.
         _log.debug('Configuring the DNP3 Outstation database.')
@@ -155,6 +155,8 @@ class DNP3Outstation(opendnp3.IOutstationApplication):
         self.retry_parameters = asiopal.ChannelRetry().Default()
         # self.listener = asiodnp3.PrintingChannelListener().Create()       # (or use this during regression testing)
         self.listener = AppChannelListener()
+        print(self.listener)
+        print("Starting TCP server 2000000")
         self.channel = self.manager.AddTCPServer("server",
                                                  self.dnp3_log_level(),
                                                  self.retry_parameters,

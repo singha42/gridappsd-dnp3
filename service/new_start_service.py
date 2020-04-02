@@ -274,13 +274,18 @@ class Processor(object):
 def start_outstation(outstation_config, processor):
     print("*********************************")
     print(str(outstation_config))
+    #dnp3_outstation = DNP3Outstation('0.0.0.0', 20000, outstation_config)
+    outstation_list =[]
     for m in port_config:
-        dnp3_outstation = DNP3Outstation('0.0.0.0', m['port'], outstation_config)
-    dnp3_outstation.set_agent(processor)
-    dnp3_outstation.start()
+        print(m['port'])
+        dnp3_outstation = DNP3Outstation('0.0.0.0', int(m['port']), outstation_config)
+        dnp3_outstation.set_agent(processor)
+        dnp3_outstation.start()
+        outstation_list.append(dnp3_outstation)
     _log.debug('DNP3 initialization complete. In command loop.')
+    
     # Ad-hoc tests can be performed at this point if desired.
-    return dnp3_outstation
+    return outstation_list
 
 
 def load_point_definitions(self):
@@ -349,8 +354,9 @@ if __name__ == '__main__':
     point_def.load_points(dnp3_object.out_json)
     processor = Processor(point_def, simulation_id, gapps)
     dnp3_object.load_point_def(point_def)
-    outstation = start_outstation(len(oustation), processor)
-    dnp3_object.load_outstation(outstation)
+    outstation_list = start_outstation(oustation, processor)
+    for outstation in outstation_list:
+        dnp3_object.load_outstation(outstation)
     # gapps.send(simulation_input_topic(opts.simulation_id), processor.process_point_value())
      
     try:
